@@ -1,0 +1,765 @@
+openapi: 3.0.0
+
+info:
+  title: "RxZero API - Luko Specific version DRAFT"
+  description: "This is the specification for the RxZero API for all products - Luko Specific version - DRAFT based on 29.04.2019 requirements"
+  termsOfService: 'https://developers.munichre.com'
+  contact:
+    name: API Support
+    url: 'https://developers.munichre.com'
+    email: support@munichre.com
+  version: "0.0.8"
+  
+####################################################        
+################                    ################         
+################      SECURITY      ################
+  
+security:
+  - OAuth2: [default]
+    apiKeyHeader: []
+    tenantIdHeader: []
+    productIdHeader: []
+      
+
+####################################################        
+################                    ################         
+################        PATHS       ################
+paths:
+
+
+
+# -------------------------  /policyrategroup  ----------------------- 
+
+# -------------------------  /rategroup  ----------------------- 
+
+  /rategroups:
+    post:
+      operationId: CreateRateGroup
+      summary: CreateRateGroup
+      description: "Creates a RateGroup with predefined variants."
+      tags:
+      - RateGroups
+      requestBody:
+        description: "Contains all data needed to create a rate."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RateRequest'
+      responses:
+        '201':
+          description: "RateGroupResponse with RateResponses created and returned."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateGroupResponse'
+        '400':
+          description: "RateGroup could not be created due to invalid input."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: "RateGroup could not be created due to internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+
+# -------------------------  /quotes  ----------------------- 
+  /quotes:
+  
+  # ------------ POST ------------
+    post:
+      operationId: CreateQuote
+      summary: CreateQuote
+      description: "Creates a Quote."
+      tags:
+      - Quotes
+      requestBody:
+        description: "Contains all data needed to create a rate and quote."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteRequest'
+      responses:
+        '201':
+          description: "Quote created."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteResponse'
+        '202':
+          description: "Quote is created, but calculation is still pending."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteResponse'
+        '400':
+          description: "Quote could not be created due to invalid input."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: "Quote could not be created due to internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          
+  # ------------ GET ------------
+    get:
+      operationId: GetQuotes
+      summary: GetQuotes
+      description: "Paginated list of all current Quotes filterd by specified parameters."
+      tags:
+      - Quotes
+      parameters:
+        - $ref: '#/components/parameters/ids'
+        - $ref: '#/components/parameters/tags'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/continuationToken'
+      responses:
+        '200':
+          description: "Paginated List of Quotes."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteListResponse'
+          
+# -------------------------  /quotes/{id}  ----------------------- 
+  '/quotes/{id}':
+  
+  # ------------ GET ------------
+    get:
+      operationId: GetQuoteById
+      summary: GetQuoteById
+      description: "Gets a Quote with the specified id."
+      tags:
+      - Quotes
+      parameters:
+      - name: id
+        in: path
+        description: "ID of the Quote to be returned."
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: "The Quote with the specified ID."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteResponse'
+        '404':
+          description: "Quote not found."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ------------ DELETE ------------
+    delete:
+      operationId: DeleteQuote
+      summary: DeleteQuote
+      description: "Delete/Reject the current Quote."
+      tags:
+      - Quotes
+      parameters:
+      - name: id
+        in: path
+        description: "ID of the Quote to be deleted."
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: "Quote was deleted."
+        '404':
+          description: "Quote not found."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+# -------------------------  /policies  ----------------------- 
+  /policies:
+  
+  # ------------ POST ------------
+    post:
+      operationId: CreatePolicy
+      summary: CreatePolicy
+      description: "Binds a Quote (NOTE: If the Quote was created by the RateGroups endpoint all other related Quotes will be rejected automatically."
+      tags:
+      - Policies
+      requestBody:
+        description: "Contains all data needed to bind a Quote."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyRequest'
+      responses:
+        '201':
+          description: "Policy created."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyResponse'
+        '400':
+          description: "Policy could not be bound due to invalid input."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: "Policy could not be bound due to internal server error."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          
+  # ------------ GET ------------
+    get:
+      operationId: GetPolicies
+      summary: GetPolicies
+      description: "Paginated list of all Policies filterd by specified parameters."
+      tags:
+      - Policies
+      parameters:
+        - $ref: '#/components/parameters/ids'
+        - $ref: '#/components/parameters/tags'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/continuationToken'
+      responses:
+        '200':
+          description: "Paginated List of Polices."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyListResponse'
+
+# -------------------------  /policies/{id}  ----------------------- 
+  '/policies/{id}':
+  
+  # ------------ GET ------------
+    get:
+      operationId: GetPolicyById
+      summary: GetPolicyById
+      description: "Gets a Policy with the specified id."
+      tags:
+      - Policies
+      parameters:
+      - name: id
+        in: path
+        description: "ID of the Policy to be returned."
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: "The Policy with the specified ID."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyResponse'
+        '404':
+          description: "Policy not found."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+####################################################        
+################                    ################         
+################     COMPONENTS     ################
+
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: "https://login.microsoftonline.com/9f2c9c2d-da50-4f33-8dfb-a780f38b50dd/oauth2/v2.0/token"
+          scopes:
+            default: default
+            
+    apiKeyHeader:
+      type: apiKey
+      name: Ocp-Apim-Subscription-Key
+      in: header
+      description: "Please see developers.munichre.com for your personal ID. 'Oct-Apim-Subscription-Key' has to be provided for every call to our API."
+      
+    tenantIdHeader:
+      type: apiKey
+      in: header
+      name: RX-Tenant-ID
+      description: "Please ask Realytix for your Tenant ID. 'RX-Tenant-ID' has to be provided for every call to our API."
+      
+    productIdHeader:
+      type: apiKey
+      in: header
+      name: RX-Product-ID
+      description: "Please ask Realytix for your Product ID. 'RX-Product-ID' has to be provided for every call to our API."
+
+ 
+####################################################        
+################                    ################         
+################       SCHEMAS      ################   
+
+  schemas:
+  
+# ------------------------  QuoteRequest  ----------------------    
+    QuoteRequest:
+      type: object
+      properties:
+        tags:
+          $ref: '#/components/schemas/Tags'
+        data:
+          $ref: '#/components/schemas/LukoQuoteInput'
+      required:
+      - data
+  
+# ------------------------  RateRequest  ----------------------    
+    RateRequest:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/LukoQuoteInput'
+      required:
+      - data
+
+
+# ------------------------  PolicyRequest  ----------------------   
+    PolicyRequest:
+      type: object
+      properties:
+        quoteId:
+          type: string
+          format: uuid
+          description: "The ID of the quote you want to bind."
+        tags:
+          $ref: '#/components/schemas/Tags'
+        data:
+          type: object
+          description: "Please contact Realytix to get your product specific schema. Luko: Empty (03.03.2019)"
+      required:
+      - quoteId
+
+# -------------------------  RateGroupResponse  -----------------------      
+    RateGroupResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RateResponse'
+
+# -------------------------  RateGroupResponse  -----------------------      
+    RateResponse:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/CalculationStatus'
+        data:
+          $ref: '#/components/schemas/LukoOutput'
+      
+# -------------------------  QuoteResponse  -----------------------      
+    QuoteResponse:
+      allOf:
+      - $ref: '#/components/schemas/PolicyVersionResponse'
+      - type: object
+        properties:
+          status:
+            $ref: '#/components/schemas/CalculationStatus'
+          expiresOn:
+            type: string
+            format: date-time
+            
+# -------------------------  QuoteListResponse  -----------------------   
+    QuoteListResponse:
+      type: object
+      properties:
+        continuationToken:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuoteResponse'
+            
+            
+# -------------------------  PolicyResponse  -----------------------      
+    PolicyResponse:
+      allOf:
+      - $ref: '#/components/schemas/PolicyVersionResponse'
+      - type: object
+        properties:
+          boundOn:
+            type: string
+            format: date-time
+            
+# -------------------------  PolicyListResponse  -----------------------   
+    PolicyListResponse:
+      type: object
+      properties:
+        continuationToken:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PolicyResponse'
+      
+# -------------------------  PolicyVersionResponse  -----------------------
+    PolicyVersionResponse:
+      description: "Abstract object used to define the shared properties of a PolicyResponse or a QuoteResponse."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        endorsementType:
+          $ref: '#/components/schemas/EndorsementTypes'
+        tags:
+          $ref: '#/components/schemas/Tags'
+        data:
+          $ref: '#/components/schemas/LukoOutput'
+       
+          
+# -------------------------  CalculationStatus  -----------------------  
+    CalculationStatus:
+      type: object
+      required:
+        - current
+      properties:
+        current:
+          type: string
+          enum:
+            - pendingSystem
+            - pendingHuman
+            - finished
+        pendingPullFrom:
+          type: string
+          format: date-time
+        pendingPullTo:
+          type: string
+          format: date-time
+        pendingPullIntervall:
+          type: integer
+          
+# -------------------------  EndorsementTypes  -----------------------  
+    EndorsementTypes:
+      type: string
+      enum:
+      - GeneralChangeEndorsement
+        
+# -------------------------  ErrorResponse  -----------------------
+    ErrorResponse:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          example: "InternalServerError (500)"
+        detail:
+          type: string
+        description:
+          type: string
+          example: "Please contact Realytix Administrator"
+        traceId:
+          type: string
+          example: 123
+          
+
+# -------------------------  Tags  -----------------------   
+
+    Tags:
+      description: Tags for an object
+      type: array
+      items:
+        type: string
+        description: "We use Tags with Prefix 'SYSTEM_' internally and will block all Tags prefixed with 'SYSTEM_' set by the user. If you send tags you will always overwrite ALL previous existing tags."
+      example: ["MY_TAG_1", "MY_TAG_2"]
+
+ 
+ 
+
+        
+    
+####################################################        
+################                    ################         
+################    Luko MODELS     ################  
+
+    Location:
+      description: Gerneral Location Model
+      type: object
+      properties:
+        countryCode:
+          type: string
+          example: "FR"
+        city:
+          type: string
+          example: "Paris"
+        street:
+          type: string
+          example: "Street"
+        streetNumber:
+          type: string
+          example: "1c"
+        zip:
+          type: string
+          example: "72100"
+        latitude:
+          type: number
+          format: float
+          example: 0
+        longitude:
+          type: number
+          format: float
+          example: 0
+      required:
+      - countryCode
+      - zip
+      - latitude
+      - longitude
+      
+    LukoQuoteInput:
+      description: "Luko Specific Input (09.04.2019); @TODO: DEFINE WHAT IS REQUIRED!!! @TODO: Define Variables for RATEGROUP, because those will be overwritten for RateGroupRequests!"
+      type: object
+      properties:
+        location:
+          $ref: '#/components/schemas/Location'
+        accommodationType:
+          type: string
+          enum:
+            - house
+        occupationType:
+          type: string
+          enum:
+            - owner
+            - renter
+        numberOfRoomMates:
+          type: integer
+          minimum: 1
+          maximum: 6
+        numberOfRooms:
+          type: integer
+          minimum: 1
+          maximum: 10
+        numberOfFloors:
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 3
+        floorSpace:
+          type: integer
+          minimum: 10
+          maximum: 400
+        furnitureValue:
+          type: number
+          format: float
+          minimum: 5000
+        valuablesValue:
+          type: number
+          format: float
+          minimum: 0
+        deductible:
+          type: integer
+          enum:
+            - 150
+            - 225
+            - 300
+        chimney:
+          type: string
+          enum:
+            - none
+            - open
+            - closed
+        alarm: 
+          type: string
+          enum:
+            - none
+            - fire
+            - theft
+        featureSolarPanels: 
+          type: boolean
+        featureVeranda: 
+          type: boolean
+        featureGarage: 
+          type: boolean
+        featureSwimminPool:
+          type: boolean
+        fullReplacementOption:
+          type: boolean
+        schoolAccidentCoverage:
+          type: boolean
+        gardenFurnitureCoverage:
+          type: boolean
+        alreadyInsured:
+          type: boolean
+        productReference:
+          type : string
+          enum:
+            - ALL
+            - POM
+            - MINLEG
+        beginsOn:
+          type : string
+          format: date-time
+          description: "As defined by date-time - RFC3339"
+          example: "2019-06-01T00:00:00Z"
+      required:
+        - location
+        - accomodationType
+        - occupationType
+        - rentingType
+        - numberOfRoomMates
+        - numberOfRooms
+        - numberOfFloors
+        - floorSpace
+        - furnitureValue
+        - valuablesValue
+        - deductibe
+        - chimney
+        - alarm
+        - featureSolarPanel
+        - featureVeranda
+        - featureGarage
+        - featureSwimmingPool
+        - fullReplacementOption
+        - schoolAccidentCoverage
+        - gardenFurnitureCoverage
+        - alreadyInsured
+      
+        
+    LukoOutput:
+      description: "Luko Specific Output"
+      type: object
+      properties:
+        coverages:
+          type: array
+          items:
+            $ref: '#/components/schemas/LukoCoverage'
+        premiumNet:
+          type: number
+          format: float
+        tax:
+          type: number
+          format: float
+        premiumGross:
+          type: number
+          format: float
+        input:
+          $ref: '#/components/schemas/LukoQuoteInput'
+          
+    LukoCoverage:
+      description: "Luko specific coverage object"
+      type: object
+      properties:
+        code:
+          type: string
+          description: "Warranty code"
+          enum:
+            - INC
+            - DDE
+            - TEMPETE
+            - RC
+            - DEFENSE
+            - ASSISTANCE
+            - CATNAT
+            - CATTECH
+            - ATTENTAT
+            - OBJVAL
+            - BDG
+            - DOMELEC
+            - VOL
+            - OPTEXT
+            - OPTRCS
+            - OPTRPTNEUF
+        limitAmount:
+          type: number
+          format: float
+        limitDescription:
+          type: string
+          description: "Text explaining the coverage’s limit."
+        deductibleAmount:
+          type: number
+          format: float
+        deductibleDescription:
+          type: string
+          description: "Text explaining the coverage’s deductibles."
+        premiumNet:
+          type: number
+          format: float
+        tax:
+          type: number
+          format: float
+        premiumGross:
+          type: number
+          format: float
+
+ 
+ 
+ 
+ 
+ 
+####################################################        
+################                    ################         
+################      PARAMETERS    ################             
+          
+
+  parameters:
+  
+# -------------------------  pageSize  -----------------------
+
+    pageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+      description: "Number of Items to be listed per Page. Default is 10."
+  
+# -------------------------  ids  -----------------------
+  
+    ids:
+      name: ids
+      in: query
+      schema:
+        type: array
+        maxItems: 10
+        items:
+          type: string
+      description: "Array of IDs to filter the list by (OR)."
+      
+  
+# -------------------------  tags  -----------------------
+
+    tags:
+      name: tags
+      in: query
+      schema:
+        type: array
+        maxItems: 5
+        items:
+          type: string
+      description: "Array of tags to filter the list by (AND)."
+      
+
+# -------------------------  continuationToken  ----------      
+    continuationToken:
+      name: continuationToken
+      in: query
+      schema:
+        type: string
